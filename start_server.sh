@@ -83,8 +83,26 @@ main() {
         log "Container started successfully! (ID: ${CONTAINER_ID:0:12})"
         
         # Wait for initialization and check if container is still running
-        log "Waiting for server to initialize..."
-        sleep 3
+        log "Waiting for server to initialize (this may take a while)..."
+        
+        # Wait for the API to become available (up to 60 seconds)
+        WAIT_TIME=0
+        MAX_WAIT=60
+        while [ $WAIT_TIME -lt $MAX_WAIT ]; do
+            if curl -s -o /dev/null --connect-timeout 2 http://localhost:8000/v1/models 2>/dev/null; then
+                log "API is now available!"
+                break
+            fi
+            echo -n "."
+            sleep 2
+            WAIT_TIME=$((WAIT_TIME + 2))
+        done
+        echo ""
+        
+        if [ $WAIT_TIME -ge $MAX_WAIT ]; then
+            log "WARNING: API did not become available within ${MAX_WAIT} seconds"
+            log "The server might still be initializing. Check logs with: docker logs -f ${CONTAINER_NAME}"
+        fi
         
         # Check if container is still running
         if ! container_running; then
