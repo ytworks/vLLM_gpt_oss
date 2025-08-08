@@ -70,20 +70,30 @@ main() {
     
     # Start new container
     log "Starting new container '${CONTAINER_NAME}'..."
-    docker run -d \
+    CONTAINER_ID=$(docker run -d \
         --gpus all \
         -p ${PORT_MAPPING} \
         --ipc=host \
         --name ${CONTAINER_NAME} \
+        --restart unless-stopped \
         ${IMAGE_NAME} \
-        --model ${MODEL_NAME}
+        --model ${MODEL_NAME})
     
     if [ $? -eq 0 ]; then
-        log "Container started successfully!"
+        log "Container started successfully! (ID: ${CONTAINER_ID:0:12})"
         
-        # Wait for initialization
+        # Wait for initialization and check if container is still running
         log "Waiting for server to initialize..."
         sleep 3
+        
+        # Check if container is still running
+        if ! container_running; then
+            log "ERROR: Container stopped unexpectedly. Checking logs..."
+            echo "----------------------------------------"
+            docker logs ${CONTAINER_NAME}
+            echo "----------------------------------------"
+            error_exit "Container failed to stay running. Check the logs above for errors."
+        fi
         
         # Show container logs
         log "Container logs (last 50 lines):"
