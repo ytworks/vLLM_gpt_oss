@@ -79,9 +79,9 @@ main() {
         -p ${PORT_MAPPING} \
         --ipc=host \
         --name ${CONTAINER_NAME} \
+        -e VLLM_USE_V1=0 \
         ${IMAGE_NAME} \
-        --model ${MODEL_NAME} \
-        --disable-sliding-window)
+        --model ${MODEL_NAME})
     
     if [ $? -eq 0 ]; then
         log "Container started successfully! (ID: ${CONTAINER_ID:0:12})"
