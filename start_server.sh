@@ -81,7 +81,7 @@ main() {
         --name ${CONTAINER_NAME} \
         ${IMAGE_NAME} \
         --model ${MODEL_NAME} \
-        --attention-sink-token-size 0)
+        --disable-sliding-window)
     
     if [ $? -eq 0 ]; then
         log "Container started successfully! (ID: ${CONTAINER_ID:0:12})"
