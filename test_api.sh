@@ -25,34 +25,16 @@ command_exists() {
 
 # Check if server is reachable
 check_server() {
-    log "Checking if vLLM server is running..."
+    log "Checking if vLLM server is reachable at http://localhost:8000..."
     
-    # First check if the container is running
-    if ! docker ps --format '{{.Names}}' | grep -q "^vllm-gptoss$"; then
-        error_exit "vLLM container is not running. Please run './start_server.sh' first."
+    # Simple connectivity test
+    if ! curl -s -o /dev/null --connect-timeout 5 http://localhost:8000 2>/dev/null; then
+        log "WARNING: Server at http://localhost:8000 is not responding."
+        log "Make sure the vLLM server is running with './start_server.sh'"
+        # Continue anyway - let the actual API call fail with its own error
+    else
+        log "Server is reachable."
     fi
-    
-    # Try multiple endpoints that vLLM might expose
-    local endpoints=("/v1/models" "/v1/chat/completions" "/health" "/")
-    local reachable=false
-    
-    for endpoint in "${endpoints[@]}"; do
-        if curl -s -o /dev/null --connect-timeout 5 "http://localhost:8000${endpoint}" 2>/dev/null; then
-            reachable=true
-            break
-        fi
-    done
-    
-    if [ "$reachable" = false ]; then
-        log "WARNING: Server is not reachable yet. It might still be initializing."
-        log "Checking container logs..."
-        echo "----------------------------------------"
-        docker logs --tail 20 vllm-gptoss
-        echo "----------------------------------------"
-        error_exit "vLLM server is not reachable. The server might still be starting up. Try again in a few moments."
-    fi
-    
-    log "Server is reachable."
 }
 
 # Main execution
