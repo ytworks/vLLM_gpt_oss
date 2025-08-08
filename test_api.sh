@@ -27,10 +27,20 @@ command_exists() {
 check_server() {
     log "Checking if vLLM server is reachable at http://localhost:8000..."
     
+    # Check if container exists and is running
+    if docker ps --format '{{.Names}}' | grep -q "^vllm-gptoss$"; then
+        log "vLLM container is running."
+    else
+        log "WARNING: vLLM container is not running."
+        if docker ps -a --format '{{.Names}}' | grep -q "^vllm-gptoss$"; then
+            log "Container exists but stopped. Checking status..."
+            docker ps -a --filter name=vllm-gptoss --format "Status: {{.Status}}"
+        fi
+    fi
+    
     # Simple connectivity test
     if ! curl -s -o /dev/null --connect-timeout 5 http://localhost:8000 2>/dev/null; then
         log "WARNING: Server at http://localhost:8000 is not responding."
-        log "Make sure the vLLM server is running with './start_server.sh'"
         # Continue anyway - let the actual API call fail with its own error
     else
         log "Server is reachable."

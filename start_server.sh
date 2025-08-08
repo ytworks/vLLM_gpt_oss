@@ -54,9 +54,13 @@ main() {
     # Check Docker
     check_docker
     
-    # Check GPU availability (warning only)
-    if ! docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi >/dev/null 2>&1; then
-        log "WARNING: GPU might not be available. The server may run slower."
+    # Check GPU availability and show info
+    log "Checking GPU availability..."
+    if docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi >/dev/null 2>&1; then
+        log "GPU detected. Showing GPU info:"
+        docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+    else
+        log "WARNING: GPU might not be available. The server may run slower or fail to start."
     fi
     
     # Handle existing container
@@ -75,7 +79,6 @@ main() {
         -p ${PORT_MAPPING} \
         --ipc=host \
         --name ${CONTAINER_NAME} \
-        --restart unless-stopped \
         ${IMAGE_NAME} \
         --model ${MODEL_NAME})
     
@@ -104,13 +107,18 @@ main() {
             log "The server might still be initializing. Check logs with: docker logs -f ${CONTAINER_NAME}"
         fi
         
-        # Check if container is still running
+        # Check if container is still running after waiting
         if ! container_running; then
-            log "ERROR: Container stopped unexpectedly. Checking logs..."
+            log "ERROR: Container stopped unexpectedly. Checking logs for errors..."
             echo "----------------------------------------"
-            docker logs ${CONTAINER_NAME}
+            docker logs ${CONTAINER_NAME} 2>&1
             echo "----------------------------------------"
-            error_exit "Container failed to stay running. Check the logs above for errors."
+            
+            # Check exit code
+            EXIT_CODE=$(docker inspect ${CONTAINER_NAME} --format='{{.State.ExitCode}}')
+            log "Container exit code: ${EXIT_CODE}"
+            
+            error_exit "Container failed to stay running. The vLLM server crashed during initialization."
         fi
         
         # Show container logs
