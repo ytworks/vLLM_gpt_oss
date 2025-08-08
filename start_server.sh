@@ -80,7 +80,8 @@ main() {
         --ipc=host \
         --name ${CONTAINER_NAME} \
         ${IMAGE_NAME} \
-        --model ${MODEL_NAME})
+        --model ${MODEL_NAME} \
+        --attention-sink-token-size 0)
     
     if [ $? -eq 0 ]; then
         log "Container started successfully! (ID: ${CONTAINER_ID:0:12})"
