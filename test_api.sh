@@ -2,7 +2,7 @@
 set -e
 
 # Configuration
-API_ENDPOINT="http://localhost:8000/v1/chat/completions"
+API_ENDPOINT="http://0.0.0.0:8000/v1/chat/completions"
 MODEL_NAME="openai/gpt-oss-20b"
 TEST_MESSAGE="Hello, how are you?"
 TIMEOUT=30
@@ -25,7 +25,7 @@ command_exists() {
 
 # Check if server is reachable
 check_server() {
-    log "Checking if vLLM server is reachable at http://localhost:8000..."
+    log "Checking if vLLM server is reachable at http://0.0.0.0:8000..."
     
     # Check if container exists and is running
     if docker ps --format '{{.Names}}' | grep -q "^vllm-gptoss$"; then
@@ -39,8 +39,8 @@ check_server() {
     fi
     
     # Simple connectivity test
-    if ! curl -s -o /dev/null --connect-timeout 5 http://localhost:8000 2>/dev/null; then
-        log "WARNING: Server at http://localhost:8000 is not responding."
+    if ! curl -s -o /dev/null --connect-timeout 5 http://0.0.0.0:8000 2>/dev/null; then
+        log "WARNING: Server at http://0.0.0.0:8000 is not responding."
         # Continue anyway - let the actual API call fail with its own error
     else
         log "Server is reachable."
