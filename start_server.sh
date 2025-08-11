@@ -79,11 +79,9 @@ main() {
         -p ${PORT_MAPPING} \
         --ipc=host \
         --name ${CONTAINER_NAME} \
-        -e VLLM_ATTENTION_BACKEND=XFORMERS \
+        --env=VLLM_ATTENTION_BACKEND=TRITON_ATTN_VLLM_V1 \
         ${IMAGE_NAME} \
-        --model ${MODEL_NAME} \
-        --max-model-len 8192 \
-        --gpu-memory-utilization 0.8)
+        --model ${MODEL_NAME})
     
     if [ $? -eq 0 ]; then
         log "Container started successfully! (ID: ${CONTAINER_ID:0:12})"
