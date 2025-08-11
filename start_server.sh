@@ -93,7 +93,7 @@ main() {
         WAIT_TIME=0
         MAX_WAIT=60
         while [ $WAIT_TIME -lt $MAX_WAIT ]; do
-            if curl -s -o /dev/null --connect-timeout 2 http://localhost:8000/v1/models 2>/dev/null; then
+            if curl -s -o /dev/null --connect-timeout 2 http://0.0.0.0:8000/v1/models 2>/dev/null; then
                 log "API is now available!"
                 break
             fi
@@ -132,7 +132,7 @@ main() {
         log "Container status:"
         docker ps --filter name=${CONTAINER_NAME} --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
         
-        log "vLLM server is ready at http://localhost:8000"
+        log "vLLM server is ready at http://0.0.0.0:8000"
         log "Use './test_api.sh' to test the API"
     else
         error_exit "Failed to start container"
